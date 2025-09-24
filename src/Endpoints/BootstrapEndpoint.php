@@ -88,15 +88,6 @@ class BootstrapEndpoint
         }
     }
 
-    protected function constructUri($baseUri, $id = null, $endpoint = '')
-    {
-        if (isset($id)) {
-            return $baseUri . $id . '/' . $endpoint;
-        }
-
-        return $baseUri . $endpoint;
-    }
-
     /**
      * Get all of resource
      *

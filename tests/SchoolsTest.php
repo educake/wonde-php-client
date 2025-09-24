@@ -7,68 +7,14 @@ use \Wonde\Client;
 class SchoolsTest extends TestCase
 {
     private const BASE_URL = 'schools/';
+    private $client;
     private $schoolsApi;
     protected function setUp(): void
     {
         $this->token = file_get_contents(__DIR__ . '/../.token');
-        $client = new Client($this->token);
-        $this->schoolsApi = $client->schools;
+        $this->client = new Client($this->token);
+        $this->schoolsApi = $this->client->schools;
     }
-
-//    public function testSearchSchoolEndpointIsNotCorrectAfterMultipleCalls()
-//    {
-//        $this->schoolsApi->search([], ['postcode' => 'EC3A']);
-//        $this->assertEquals('schools/all/', $this->schoolsApi->uri);
-//
-//        $this->expectException(ClientException::class);
-//        $this->schoolsApi->search([], ['postcode' => 'EC3B']);
-//        $this->assertEquals('schools/all/all/', $this->schoolsApi->uri);
-//
-//        $this->expectException(ClientException::class);
-//        $this->schoolsApi->search([], ['postcode' => 'EC3B']);
-//        $this->assertEquals('schools/all/all/all/', $this->schoolsApi->uri);
-//    }
-
-//    public function testSchoolsPendingEndpointIsNotCorrectAfterMultipleCalls()
-//    {
-//        $this->schoolsApi->pending();
-//        $this->assertEquals('schools/pending/', $this->schoolsApi->uri);
-//
-//        $this->expectException(ClientException::class);
-//        $this->schoolsApi->pending();
-//        $this->assertEquals('schools/pending/pending/', $this->schoolsApi->uri);
-//    }
-
-//    public function testSchoolAuditedEndpointIsNotCorrectAfterMultipleCalls()
-//    {
-//        $this->schoolsApi->audited();
-//        $this->assertEquals('schools/audited/', $this->schoolsApi->uri);
-//
-//        $this->expectException(ClientException::class);
-//        $this->schoolsApi->audited();
-//        $this->assertEquals('schools/audited/audited/', $this->schoolsApi->uri);
-//    }
-
-//    public function testSchoolDeclinedEndpointIsNotCorrectAfterMultipleCalls()
-//    {
-//        $this->schoolsApi->declined();
-//        $this->assertEquals('schools/declined/', $this->schoolsApi->uri);
-//
-//        $this->expectException(ClientException::class);
-//        $this->schoolsApi->declined();
-//        $this->assertEquals('schools/declined/declined/', $this->schoolsApi->uri);
-//    }
-
-//    public function testSchoolRevokedEndpointIsNotCorrectAfterMultipleCalls()
-//    {
-//        $this->schoolsApi->revoked();
-//        $this->assertEquals('schools/revoked/', $this->schoolsApi->uri);
-//
-//        $this->expectException(ClientException::class);
-//        $this->schoolsApi->revoked();
-//        $this->assertEquals('schools/revoked/revoked/', $this->schoolsApi->uri);
-//    }
-
 
     public function testSchoolsPendingEndpointIsCorrectAfterMultipleCalls()
     {
@@ -76,6 +22,9 @@ class SchoolsTest extends TestCase
         $this->assertEquals('schools/pending/', $this->schoolsApi->uri);
 
         $this->schoolsApi->pending();
+        // Before fix issue
+        $this->assertNotEquals('schools/pending/pending', $this->schoolsApi->uri);
+
         $this->assertEquals('schools/pending/', $this->schoolsApi->uri);
     }
 
@@ -85,6 +34,9 @@ class SchoolsTest extends TestCase
         $this->assertEquals('schools/audited/', $this->schoolsApi->uri);
 
         $this->schoolsApi->audited();
+        // Before fix issue
+        $this->assertNotEquals('schools/audited/audited', $this->schoolsApi->uri);
+
         $this->assertEquals('schools/audited/', $this->schoolsApi->uri);
     }
 
@@ -94,6 +46,9 @@ class SchoolsTest extends TestCase
         $this->assertEquals('schools/declined/', $this->schoolsApi->uri);
 
         $this->schoolsApi->declined();
+        // Before fix issue
+        $this->assertNotEquals('schools/declined/declined', $this->schoolsApi->uri);
+
         $this->assertEquals('schools/declined/', $this->schoolsApi->uri);
     }
 
@@ -103,6 +58,9 @@ class SchoolsTest extends TestCase
         $this->assertEquals('schools/revoked/', $this->schoolsApi->uri);
 
         $this->schoolsApi->revoked();
+        // Before fix issue
+        $this->assertNotEquals('schools/revoked/revoked/', $this->schoolsApi->uri);
+
         $this->assertEquals('schools/revoked/', $this->schoolsApi->uri);
     }
 
@@ -112,28 +70,51 @@ class SchoolsTest extends TestCase
         $this->assertEquals('schools/all/', $this->schoolsApi->uri);
 
         $this->schoolsApi->search([], ['postcode' => 'SW1A']);
+        // Before fix issue
+        $this->assertNotEquals('schools/all/all/', $this->schoolsApi->uri);
+
         $this->assertEquals('schools/all/', $this->schoolsApi->uri);
 
         $this->schoolsApi->search([], ['postcode' => 'SW1A']);
+        // Before fix issue
+        $this->assertNotEquals('schools/all/all/all/', $this->schoolsApi->uri);
+
         $this->assertEquals('schools/all/', $this->schoolsApi->uri);
     }
 
-//    public static function uriParams()
-//    {
-//        $fullUrl = 'https://wonde.com/' . self::BASE_URL;
-//        return [
-//            [$fullUrl, 1, 'all/'],
-//            [$fullUrl, null, 'all/'],
-//            [$fullUrl, null, ''],
-//            [$fullUrl, null, null],
-//        ];
-//    }
-//
-//    /**
-//     *@dataProvider uriParams
-//     */
-//    public function testConstructUriMethod($url, $id, $endpoint)
-//    {
-//        var_dump($this->schoolsApi->constructUri($url, $id, $endpoint));
-//    }
+    public static function allSchoolsUriParams()
+    {
+        return [
+            ['all/', self::BASE_URL . 'all/'],
+            ['all/', self::BASE_URL . 'all/'],
+            ['', self::BASE_URL],
+            [null, self::BASE_URL],
+        ];
+    }
+
+    public static function specificSchoolUriParams()
+    {
+        return [
+            [1, 'all/', self::BASE_URL . '1/all/'],
+            [null, 'all/', self::BASE_URL . 'all/'],
+            [null, '', self::BASE_URL],
+            [null, null, self::BASE_URL],
+        ];
+    }
+
+    /**
+     *@dataProvider allSchoolsUriParams
+     */
+    public function testConstructUriMethod($endpoint, $expected)
+    {
+        $this->assertSame($expected, $this->schoolsApi->constructUri($endpoint));
+    }
+
+    /**
+     *@dataProvider specificSchoolUriParams
+     */
+    public function testConstructUriMethodForSpecificSchool($id, $endpoint, $expected)
+    {
+        $this->assertSame($expected, $this->client->school($id)->constructUri($endpoint));
+    }
 }
